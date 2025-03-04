@@ -58,7 +58,7 @@ app.post("/register", profilePicUpload.single("profilePic"), (req, res) => {
 
     const profilePicUrl = req.file ? `/uploads/profile_pics/${req.file.filename}` : "/uploads/profile_pics/default.png";
 
-    const newUser = {
+    const newUser  = {
         id: Date.now(),
         username: userData.username,
         email: userData.email,
@@ -68,12 +68,13 @@ app.post("/register", profilePicUpload.single("profilePic"), (req, res) => {
         followers: [],
         following: [],
         savedPosts: [],
+        likes: 0, // Initialize likes count
         notifications: [{ type: "welcome", message: "Welcome to Voltura! 🎉 Set up your profile and start exploring.", timestamp: new Date().toISOString() }],
     };
 
-    users.push(newUser);
+    users.push(newUser );
     writeUsers(users);
-    res.json({ success: true, message: "Registration successful!", user: newUser });
+    res.json({ success: true, message: "Registration successful!", user: newUser  });
 });
 
 app.post("/login", (req, res) => {
@@ -107,7 +108,8 @@ app.post("/posts/:id/like", (req, res) => {
     const users = readUsers();
     const postOwner = users.find(user => user.username === post.username);
     if (postOwner) {
-        postOwner.notifications.push({ type: "like", fromUserId: userId, postId, timestamp: new Date().toISOString() });
+        postOwner.likes += 1; // Increment likes count for the user
+        postOwner.notifications.push({ type: "like", fromUser Id: userId, postId, timestamp: new Date().toISOString() });
         writeUsers(users);
     }
 
@@ -122,7 +124,7 @@ app.post("/users/:username/follow", (req, res) => {
     const userToFollow = users.find(user => user.username === username);
     const follower = users.find(user => user.id === followerId);
 
-    if (!userToFollow || !follower) return res.status(404).json({ success: false, message: "User not found." });
+    if (!userToFollow || !follower) return res.status(404).json({ success: false, message: "User  not found." });
 
     userToFollow.followers = Array.isArray(userToFollow.followers) ? userToFollow.followers : [];
     follower.following = Array.isArray(follower.following) ? follower.following : [];
@@ -130,7 +132,7 @@ app.post("/users/:username/follow", (req, res) => {
     if (!userToFollow.followers.includes(followerId)) {
         userToFollow.followers.push(followerId);
         follower.following.push(userToFollow.id);
-        userToFollow.notifications.push({ type: "follow", fromUserId: followerId, timestamp: new Date().toISOString() });
+        userToFollow.notifications.push({ type: "follow", fromUser Id: followerId, timestamp: new Date().toISOString() });
         writeUsers(users);
         res.json({ success: true, message: "Followed user!" });
     } else {
@@ -140,7 +142,7 @@ app.post("/users/:username/follow", (req, res) => {
 
 app.get("/users/:username", (req, res) => {
     const user = readUsers().find(user => user.username === req.params.username);
-    if (!user) return res.status(404).json({ success: false, message: "User not found." });
+    if (!user) return res.status(404).json({ success: false, message: "User  not found." });
     res.json({ success: true, user });
 });
 
@@ -168,7 +170,7 @@ app.post("/upload", upload.single("image"), (req, res) => {
 
 app.get("/notifications/:userId", (req, res) => {
     const user = readUsers().find(user => user.id === parseInt(req.params.userId));
-    if (!user) return res.status(404).json({ success: false, message: "User not found." });
+    if (!user) return res.status(404).json({ success: false, message: "User  not found." });
     res.json({ notifications: user.notifications || [] });
 });
 
