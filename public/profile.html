@@ -4,22 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title id="meta-title">Profile</title>
-
     <meta name="description" content="View user profile on Voltura.">
     <meta name="keywords" content="Voltura, social media, user profile, posts">
     <meta name="author" content="Voltura">
-
-    <meta property="og:title" content="Voltura Profile">
-    <meta property="og:description" content="View user profile on Voltura.">
-    <meta property="og:image" content="default-profile.jpg">
-    <meta property="og:url" content="">
-    <meta property="og:type" content="profile">
-
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Voltura Profile">
-    <meta name="twitter:description" content="View user profile on Voltura.">
-    <meta name="twitter:image" content="default-profile.jpg">
-
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <style>
         :root {
@@ -112,6 +99,7 @@
             <span id="post-count"><i class="fas fa-image"></i> 0 Posts</span>
             <span id="follower-count"><i class="fas fa-users"></i> 0 Followers</span>
             <span id="following-count"><i class="fas fa-user-friends"></i> 0 Following</span>
+            <span id="like-count"><i class="fas fa-heart"></i> 0 Likes</span> <!-- Added likes count -->
         </div>
     </div>
 
@@ -135,21 +123,21 @@
         const postCount = document.getElementById("post-count");
         const followerCount = document.getElementById("follower-count");
         const followingCount = document.getElementById("following-count");
+        const likeCount = document.getElementById("like-count");
         const postsGrid = document.getElementById("posts-grid");
         const savedPostsGrid = document.getElementById("saved-posts-grid");
 
-        let currentUser = null;
-        let profileUser = null;
+        let currentUser  = null;
 
         async function fetchProfile(username) {
             const response = await fetch(`/users/${username}`, {
-                headers: { "Authorization": `Bearer ${currentUser.token}` }
+                headers: { "Authorization": `Bearer ${currentUser .token}` }
             });
             if (!response.ok) throw new Error("Failed to fetch profile data.");
             return await response.json();
         }
 
-        async function fetchUserPosts(username) {
+        async function fetchUser Posts(username) {
             const response = await fetch(`/posts?username=${username}`);
             if (!response.ok) throw new Error("Failed to fetch user posts.");
             return (await response.json()).posts;
@@ -177,20 +165,26 @@
             if (!username) return showError("Username not specified.");
 
             try {
-                profileUser = await fetchProfile(username);
-                profileUsername.textContent = profileUser.username;
-                profileBio.textContent = profileUser.bio || "No bio yet.";
-                document.querySelector(".profile-pic").src = profileUser.profilePic || "default-profile.jpg";
+                const profileData = await fetchProfile(username);
+                const user = profileData.user;
 
-                document.title = `${profileUser.username} | Voltura`;
+                profileUsername.textContent = user.username;
+                profileBio.textContent = user.bio || "No bio yet.";
+                document.querySelector(".profile-pic").src = user.profilePic || "default-profile.jpg";
 
-                const posts = await fetchUserPosts(username);
+                document.title = `${user.username} | Voltura`;
+
+                const posts = await fetchUser Posts(username);
                 postCount.innerHTML = `<i class="fas fa-image"></i> ${posts.length} Posts`;
                 renderPosts(posts, postsGrid);
 
-                if (currentUser && currentUser.username === username) {
+                followerCount.innerHTML = `<i class="fas fa-users"></i> ${user.followers.length} Followers`;
+                followingCount.innerHTML = `<i class="fas fa-user-friends"></i> ${user.following.length} Following`;
+                likeCount.innerHTML = `<i class="fas fa-heart"></i> ${user.likes} Likes`;
+
+                if (currentUser  && currentUser .username === username) {
                     savedPostsGrid.innerHTML = "<p>Loading saved posts...</p>";
-                    const savedPosts = await fetchSavedPosts(currentUser.id);
+                    const savedPosts = await fetchSavedPosts(currentUser .id);
                     renderPosts(savedPosts, savedPostsGrid);
                 }
             } catch (error) {
@@ -207,8 +201,8 @@
         }
 
         async function init() {
-            currentUser = JSON.parse(localStorage.getItem("currentUser"));
-            if (!currentUser) return showError("Please log in.");
+            currentUser  = JSON.parse(localStorage.getItem("currentUser "));
+            if (!currentUser ) return showError("Please log in.");
             await loadProfile();
             highlightActiveNav();
         }
@@ -216,4 +210,4 @@
         init();
     </script>
 </body>
-</html>
+        </html>
