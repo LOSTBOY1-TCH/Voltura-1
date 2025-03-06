@@ -274,6 +274,8 @@
                 document.getElementById("loading-screen").classList.remove("show");
 
                 if (data.success) {
+                    // Save the token and user data in localStorage
+                    localStorage.setItem("token", data.token);
                     localStorage.setItem("currentUser", JSON.stringify(data.user));
                     window.location.href = "dashboard.html";
                 } else {
@@ -304,3 +306,4 @@
 
 </body>
 </html>
+`Login`
