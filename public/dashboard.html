@@ -3,168 +3,73 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Voltura - Share your favorite moments with the world!">
-    <meta property="og:title" content="Voltura Dashboard">
-    <meta property="og:description" content="Share your favorite moments with the world!">
-    <meta property="og:image" content="https://files.catbox.moe/fcmeit.jpeg">
-    <meta property="og:url" content="https://voltura.onrender.com/dashboard.html">
-    <title>Voltura</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <title>Voltura Dashboard</title>
     <style>
-        :root { --light-blue: #a0d2eb; --light-green: #a8e6cf; --text-dark: #2c3e50; --shadow: rgba(0, 0, 0, 0.1); }
-        body { background: white; color: var(--text-dark); margin: 0; font-family: 'Segoe UI', sans-serif; }
-        .post { margin: 15px auto; max-width: 600px; border: 1px solid var(--light-blue); border-radius: 10px; }
-        .post-header { display: flex; align-items: center; padding: 10px; }
-        .post-header img { width: 40px; height: 40px; border-radius: 50%; margin-right: 10px; }
-        .post-username { font-weight: bold; color: var(--text-dark); text-decoration: none; }
-        .post-image { width: 100%; height: auto; }
-        .post-caption { padding: 10px; font-size: 14px; color: var(--text-dark); }
-        .post-actions { padding: 10px; display: flex; gap: 10px; }
-        .post-actions button { background: none; border: none; font-size: 24px; color: var(--light-blue); cursor: pointer; transition: color 0.3s ease; }
-        .post-actions button:hover { color: var(--light-green); }
-        .post-actions .liked { color: #ff3040 !important; }
-        .post-time { font-size: 12px; color: #7f8c8d; padding: 0 10px; }
-        .navbar { position: fixed; bottom: 0; width: 100%; background: lightskyblue; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid var(--light-blue); }
-        .navbar a { color: var(--light-green); font-size: 24px; }
-        .follow-btn { margin-left: auto; background: var(--light-green); border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; transition: background 0.3s ease; }
-        .follow-btn.following { background: var(--light-blue); }
-        .loading-spinner { display: flex; justify-content: center; margin: 20px 0; }
-        .loading-spinner i { font-size: 24px; animation: spin 1s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .comment-dropdown { display: none; padding: 10px; border-top: 1px solid var(--light-blue); }
-        .comment-dropdown.active { display: block; }
-        .comment-dropdown p { margin: 0; font-size: 14px; color: var(--text-dark); }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #posts-container {
+            display: flex;
+            flex-direction: column;
+            width: 80%;
+            max-width: 600px;
+            margin-top: 20px;
+        }
+
+        .post {
+            border: 1px solid #ddd;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            padding: 10px;
+            background: #f9f9f9;
+        }
+
+        .post img {
+            width: 100%;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+
+        .post p {
+            margin: 5px 0;
+        }
     </style>
 </head>
 <body>
-    <div id="feed"></div>
-    <div id="loading-spinner" class="loading-spinner" style="display: none;">
-        <i class="fas fa-spinner"></i>
-    </div>
-    <nav class="navbar">
-        <a href="dashboard.html"><i class="fas fa-home"></i></a>
-        <a href="upload.html"><i class="fas fa-plus-square"></i></a>
-        <a href="notifications.html"><i class="fas fa-bell"></i></a>
-        <a href="profile.html"><i class="fas fa-user"></i></a>
-    </nav>
+    <h1>Welcome to Voltura!</h1>
+    <div id="posts-container"></div>
+
     <script>
-        let currentPage = 1;
-        let isLoading = false;
+        async function fetchPosts() {
+            try {
+                const response = await fetch("/posts");
+                const data = await response.json();
+                const postsContainer = document.getElementById("posts-container");
+                postsContainer.innerHTML = ""; // Clear previous content
 
-        async function fetchPosts(page = 1) {
-            const response = await fetch(`/posts?page=${page}`);
-            const data = await response.json();
-            return data.posts;
-        }
-
-        function renderPost(post) {
-            const postElement = document.createElement('div');
-            postElement.className = 'post';
-            postElement.innerHTML = `
-                <div class="post-header">
-                    <img src="${post.profilePic}" alt="Profile">
-                    <a href="profile.html?user=${post.username}" class="post-username">${post.username}</a>
-                    <button class="follow-btn" onclick="followUser('${post.username}', this)">Follow</button>
-                </div>
-                <img src="${post.image}" class="post-image" alt="Post">
-                ${post.caption ? `<div class="post-caption">${post.caption}</div>` : ''}
-                <div class="post-actions">
-                    <button onclick="likePost(${post.id}, this)"><i class="far fa-heart"></i></button>
-                    <button onclick="toggleCommentDropdown(${post.id})"><i class="far fa-comment"></i></button>
-                    <button onclick="savePost(${post.id})"><i class="far fa-bookmark"></i></button>
-                </div>
-                <div class="comment-dropdown" id="comment-dropdown-${post.id}">
-                    ${post.comments && post.comments.length > 0 ? 
-                        post.comments.map(comment => `<p>${comment.comment}</p>`).join('') : 
-                        '<p>Be the first to comment!</p>'
-                    }
-                </div>
-                <div class="post-time">${formatTime(post.timestamp)}</div>
-            `;
-            return postElement;
-        }
-
-        function formatTime(isoTime) {
-            const date = new Date(isoTime);
-            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-        }
-
-        async function likePost(postId, button) {
-            const icon = button.querySelector('i');
-            icon.classList.toggle('far');
-            icon.classList.toggle('fas');
-            icon.classList.toggle('liked');
-
-            await fetch(`/posts/${postId}/like`, { 
-                method: "POST", 
-                headers: { 
-                    "Content-Type": "application/json", 
-                    "Authorization": `Bearer ${localStorage.getItem("token")}` 
-                }, 
-                body: JSON.stringify({ userId: JSON.parse(localStorage.getItem("currentUser")).id }) 
-            });
-        }
-
-        function toggleCommentDropdown(postId) {
-            const dropdown = document.getElementById(`comment-dropdown-${postId}`);
-            dropdown.classList.toggle('active');
-        }
-
-        async function followUser(username, button) {
-            button.textContent = button.textContent === 'Follow' ? 'Following' : 'Follow';
-            button.classList.toggle('following');
-
-            await fetch(`/users/${username}/follow`, {
-                method: "POST",
-                headers: { 
-                    "Content-Type": "application/json", 
-                    "Authorization": `Bearer ${localStorage.getItem("token")}` 
-                },
-                body: JSON.stringify({ followerId: JSON.parse(localStorage.getItem("currentUser")).id }),
-            });
-        }
-
-        async function savePost(postId) {
-            await fetch(`/posts/${postId}/save`, {
-                method: "POST",
-                headers: { 
-                    "Content-Type": "application/json", 
-                    "Authorization": `Bearer ${localStorage.getItem("token")}` 
-                },
-                body: JSON.stringify({ userId: JSON.parse(localStorage.getItem("currentUser")).id }),
-            });
-            alert(`Post ${postId} saved!`);
-        }
-
-        async function loadMorePosts() {
-            if (isLoading) return;
-            isLoading = true;
-
-            const spinner = document.getElementById('loading-spinner');
-            spinner.style.display = 'flex';
-
-            const posts = await fetchPosts(currentPage);
-            if (posts.length > 0) {
-                const feed = document.getElementById('feed');
-                posts.forEach(post => feed.appendChild(renderPost(post)));
-                currentPage++;
+                data.posts.forEach(post => {
+                    const postElement = document.createElement("div");
+                    postElement.className = "post";
+                    postElement.innerHTML = `
+                        <img src="${post.image}" alt="Post Image">
+                        <p><strong>${post.username}</strong></p>
+                        <p>${post.caption}</p>
+                        <p><small>Likes: ${post.likes}</small></p>
+                    `;
+                    postsContainer.appendChild(postElement);
+                });
+            } catch (error) {
+                console.error("Error fetching posts:", error);
             }
-
-            spinner.style.display = 'none';
-            isLoading = false;
         }
 
-        async function loadFeed() {
-            await loadMorePosts();
-        }
-
-        window.addEventListener('scroll', () => {
-            if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 100) {
-                loadMorePosts();
-            }
-        });
-
-        loadFeed();
+        fetchPosts();
     </script>
 </body>
-    </html>
+</html>
