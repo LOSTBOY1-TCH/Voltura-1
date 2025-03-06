@@ -7,87 +7,30 @@
     <meta name="description" content="View user profile on Voltura.">
     <meta name="keywords" content="Voltura, social media, user profile, posts">
     <meta name="author" content="Voltura">
+    <meta property="og:title" content="Voltura Profile">
+    <meta property="og:description" content="View user profile on Voltura.">
+    <meta property="og:image" content="default-profile.jpg">
+    <meta property="og:url" content="">
+    <meta property="og:type" content="profile">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Voltura Profile">
+    <meta name="twitter:description" content="View user profile on Voltura.">
+    <meta name="twitter:image" content="default-profile.jpg">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <style>
-        :root {
-            --light-blue: #a0d2eb;
-            --light-green: #a8e6cf;
-            --text-dark: #2c3e50;
-            --shadow: rgba(0, 0, 0, 0.1);
-        }
-
-        body {
-            background: white;
-            color: var(--text-dark);
-            margin: 0;
-            font-family: 'Segoe UI', sans-serif;
-        }
-
-        .profile-header {
-            padding: 20px;
-            text-align: center;
-            border-bottom: 1px solid var(--light-blue);
-        }
-
-        .profile-pic {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            border: 3px solid var(--light-green);
-        }
-
-        .profile-stats {
-            display: flex;
-            justify-content: space-around;
-            margin: 20px 0;
-        }
-
-        .profile-stats span {
-            font-size: 18px;
-            font-weight: bold;
-        }
-
-        .posts-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-            padding: 20px;
-        }
-
-        .post-thumbnail {
-            width: 100%;
-            height: 150px;
-            object-fit: cover;
-            border-radius: 10px;
-        }
-
-        .saved-posts {
-            padding: 20px;
-        }
-
-        .saved-posts h2 {
-            margin-bottom: 10px;
-        }
-
-        .navbar {
-            position: fixed;
-            bottom: 0;
-            width: 100%;
-            background: white;
-            display: flex;
-            justify-content: space-around;
-            padding: 15px 0;
-            border-top: 1px solid var(--light-blue);
-        }
-
-        .navbar a {
-            color: var(--text-dark);
-            font-size: 24px;
-        }
-
-        .active-link {
-            color: #FF5733 !important;
-        }
+        :root { --light-blue: #a0d2eb; --light-green: #a8e6cf; --text-dark: #2c3e50; --shadow: rgba(0, 0, 0, 0.1); }
+        body { background: white; color: var(--text-dark); margin: 0; font-family: 'Segoe UI', sans-serif; }
+        .profile-header { padding: 20px; text-align: center; border-bottom: 1px solid var(--light-blue); }
+        .profile-pic { width: 100px; height: 100px; border-radius: 50%; border: 3px solid var(--light-green); }
+        .profile-stats { display: flex; justify-content: space-around; margin: 20px 0; }
+        .profile-stats span { font-size: 18px; font-weight: bold; }
+        .posts-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 20px; }
+        .post-thumbnail { width: 100%; height: 150px; object-fit: cover; border-radius: 10px; }
+        .saved-posts { padding: 20px; }
+        .saved-posts h2 { margin-bottom: 10px; }
+        .navbar { position: fixed; bottom: 0; width: 100%; background: white; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid var(--light-blue); }
+        .navbar a { color: var(--text-dark); font-size: 24px; }
+        .active-link { color: #FF5733 !important; }
     </style>
 </head>
 <body>
@@ -99,52 +42,48 @@
             <span id="post-count"><i class="fas fa-image"></i> 0 Posts</span>
             <span id="follower-count"><i class="fas fa-users"></i> 0 Followers</span>
             <span id="following-count"><i class="fas fa-user-friends"></i> 0 Following</span>
-            <span id="like-count"><i class="fas fa-heart"></i> 0 Likes</span> <!-- Added likes count -->
         </div>
     </div>
-
     <div class="posts-grid" id="posts-grid"></div>
-
     <div class="saved-posts">
         <h2><i class="fas fa-bookmark"></i> Saved Posts</h2>
         <div class="posts-grid" id="saved-posts-grid">Loading saved posts...</div>
     </div>
-
     <nav class="navbar">
         <a href="dashboard.html"><i class="fas fa-home"></i></a>
         <a href="upload.html"><i class="fas fa-plus-square"></i></a>
         <a href="notifications.html"><i class="fas fa-bell"></i></a>
         <a href="profile.html"><i class="fas fa-user"></i></a>
     </nav>
-
     <script>
         const profileUsername = document.getElementById("profile-username");
         const profileBio = document.getElementById("profile-bio");
         const postCount = document.getElementById("post-count");
         const followerCount = document.getElementById("follower-count");
         const followingCount = document.getElementById("following-count");
-        const likeCount = document.getElementById("like-count");
         const postsGrid = document.getElementById("posts-grid");
         const savedPostsGrid = document.getElementById("saved-posts-grid");
 
-        let currentUser  = null;
+        let currentUser = null;
 
         async function fetchProfile(username) {
             const response = await fetch(`/users/${username}`, {
-                headers: { "Authorization": `Bearer ${currentUser .token}` }
+                headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` }
             });
             if (!response.ok) throw new Error("Failed to fetch profile data.");
             return await response.json();
         }
 
-        async function fetchUser Posts(username) {
+        async function fetchUserPosts(username) {
             const response = await fetch(`/posts?username=${username}`);
             if (!response.ok) throw new Error("Failed to fetch user posts.");
             return (await response.json()).posts;
         }
 
         async function fetchSavedPosts(userId) {
-            const response = await fetch(`/users/${userId}/saved`);
+            const response = await fetch(`/users/${userId}/saved`, {
+                headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` }
+            });
             if (!response.ok) throw new Error("Failed to fetch saved posts.");
             return (await response.json()).savedPosts;
         }
@@ -166,25 +105,20 @@
 
             try {
                 const profileData = await fetchProfile(username);
-                const user = profileData.user;
+                profileUsername.textContent = profileData.user.username;
+                profileBio.textContent = profileData.user.bio || "No bio yet.";
+                document.querySelector(".profile-pic").src = profileData.user.profilePic || "default-profile.jpg";
 
-                profileUsername.textContent = user.username;
-                profileBio.textContent = user.bio || "No bio yet.";
-                document.querySelector(".profile-pic").src = user.profilePic || "default-profile.jpg";
+                document.title = `${profileData.user.username} | Voltura`;
 
-                document.title = `${user.username} | Voltura`;
-
-                const posts = await fetchUser Posts(username);
-                postCount.innerHTML = `<i class="fas fa-image"></i> ${posts.length} Posts`;
+                const posts = await fetchUserPosts(username);
+                postCount.innerHTML = `<i class="fas fa-image"></i> ${profileData.user.postCount} Posts`;
+                followerCount.innerHTML = `<i class="fas fa-users"></i> ${profileData.user.followerCount} Followers`;
+                followingCount.innerHTML = `<i class="fas fa-user-friends"></i> ${profileData.user.followingCount} Following`;
                 renderPosts(posts, postsGrid);
 
-                followerCount.innerHTML = `<i class="fas fa-users"></i> ${user.followers.length} Followers`;
-                followingCount.innerHTML = `<i class="fas fa-user-friends"></i> ${user.following.length} Following`;
-                likeCount.innerHTML = `<i class="fas fa-heart"></i> ${user.likes} Likes`;
-
-                if (currentUser  && currentUser .username === username) {
-                    savedPostsGrid.innerHTML = "<p>Loading saved posts...</p>";
-                    const savedPosts = await fetchSavedPosts(currentUser .id);
+                if (currentUser && currentUser.username === username) {
+                    const savedPosts = await fetchSavedPosts(currentUser.id);
                     renderPosts(savedPosts, savedPostsGrid);
                 }
             } catch (error) {
@@ -201,8 +135,8 @@
         }
 
         async function init() {
-            currentUser  = JSON.parse(localStorage.getItem("currentUser "));
-            if (!currentUser ) return showError("Please log in.");
+            currentUser = JSON.parse(localStorage.getItem("currentUser"));
+            if (!currentUser) return showError("Please log in.");
             await loadProfile();
             highlightActiveNav();
         }
@@ -210,4 +144,4 @@
         init();
     </script>
 </body>
-        </html>
+</html>
