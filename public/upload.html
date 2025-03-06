@@ -129,7 +129,7 @@
         }
 
         .navbar a {
-            color: var(--text-dark);
+            color: var(--light-green);
             font-size: 24px;
             transition: color 0.3s ease;
         }
@@ -188,16 +188,16 @@
 
         uploadPreview.addEventListener("dragover", (e) => {
             e.preventDefault();
-            uploadPreview.style.borderColor = "var(--light-green)";
+            uploadPreview.style.borderColor = 'var(--light-green)';
         });
 
         uploadPreview.addEventListener("dragleave", () => {
-            uploadPreview.style.borderColor = "var(--light-blue)";
+            uploadPreview.style.borderColor = 'var(--light-blue)';
         });
 
         uploadPreview.addEventListener("drop", (e) => {
             e.preventDefault();
-            uploadPreview.style.borderColor = "var(--light-blue)";
+            uploadPreview.style.borderColor = 'var(--light-blue)';
 
             const file = e.dataTransfer.files[0];
             if (file && file.type.startsWith("image/")) {
@@ -247,4 +247,4 @@
         });
     </script>
 </body>
-        </html>
+</html>
