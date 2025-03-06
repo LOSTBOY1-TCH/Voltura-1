@@ -15,7 +15,6 @@
     <meta name="twitter:description" content="Stay updated with real-time notifications on Voltura.">
     <meta name="twitter:image" content="https://files.catbox.moe/fcmeit.jpeg">
     <title>Voltura - Notifications</title>
-    <!-- Font Awesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
         :root {
@@ -137,22 +136,29 @@
         <div class="icon"><i class="fas fa-bell"></i></div>
         <div class="title">Notifications</div>
     </div>
-    <div class="notifications" id="notifications">
-        ;
-    </div>
+    <div class="notifications" id="notifications"></div>
     <script>
-        const userId = 1; 
         const notificationsContainer = document.getElementById("notifications");
 
         function fetchNotifications() {
-            fetch(`/notifications/${userId}`)
+            const token = localStorage.getItem("token");
+            if (!token) {
+                notificationsContainer.innerHTML = "<p>Please log in to view notifications.</p>";
+                return;
+            }
+
+            fetch(`/notifications/${JSON.parse(localStorage.getItem("currentUser")).id}`, {
+                headers: { "Authorization": `Bearer ${token}` }
+            })
                 .then(response => response.json())
                 .then(data => {
                     if (data.notifications.length === 0) {
                         notificationsContainer.innerHTML = "<p>No notifications.</p>";
                     } else {
                         const groupedNotifications = data.notifications.reduce((acc, notification) => {
-                            const type = notification.type === "like" ? "Likes" : "Follows";
+                            const type = notification.type === "like" ? "Likes" : 
+                                       notification.type === "follow" ? "Follows" : 
+                                       "General";
                             if (!acc[type]) {
                                 acc[type] = [];
                             }
@@ -167,10 +173,14 @@
                                     ${items.map(item => `
                                         <div class="notification-item">
                                             <div class="notification-icon">
-                                                ${item.type === "like" ? '<i class="fas fa-heart"></i>' : '<i class="fas fa-user-plus"></i>'}
+                                                ${item.type === "like" ? '<i class="fas fa-heart"></i>' : 
+                                                 item.type === "follow" ? '<i class="fas fa-user-plus"></i>' : 
+                                                 '<i class="fas fa-bell"></i>'}
                                             </div>
                                             <div class="notification-content">
-                                                ${item.type === "like" ? "Someone liked your post." : "Someone followed you."}
+                                                ${item.type === "like" ? "Someone liked your post." : 
+                                                 item.type === "follow" ? "Someone followed you." : 
+                                                 item.message}
                                                 <div class="notification-timestamp">${new Date(item.timestamp).toLocaleString()}</div>
                                             </div>
                                         </div>
